@@ -1,0 +1,17 @@
+{
+  "gtasks_webapp_url": "https://script.google.com/macros/s/.../exec",
+  "students": {
+    "jakub": {
+      "name": "Jakub Vacata",
+      "class": "7.C",
+      "student_id": -1202,
+      "webapp_url": "https://script.google.com/macros/s/JAKUB_DEPLOYMENT_ID/exec"
+    },
+    "marek": {
+      "name": "Marek Vacata",
+      "class": "5.A",
+      "student_id": -1151,
+      "webapp_url": "https://script.google.com/macros/s/MAREK_DEPLOYMENT_ID/exec"
+    }
+  }
+}

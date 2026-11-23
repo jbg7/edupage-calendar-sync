@@ -1,8 +1,18 @@
 #!/usr/bin/env python3
 """
 Cross-platform helper (Windows / Linux / macOS) to push EduPage homework tasks
-to the user's Google Apps Script Web App endpoint (Google Tasks).
-Uses only the Python standard library (urllib, json, os, sys, pathlib).
+and test/exam calendar events to a Google Apps Script Web App endpoint.
+
+Supports both:
+- Single-student config:
+  {"gtasks_webapp_url": "https://script.google.com/macros/s/.../exec"}
+- Multi-student (parent) config:
+  {
+    "students": {
+      "jakub": {"name": "Jakub Vacata", "class": "7.C", "student_id": -1202, "webapp_url": "https://..."},
+      "marek": {"name": "Marek Vacata", "class": "5.A", "student_id": -1151, "webapp_url": "https://..."}
+    }
+  }
 """
 
 import argparse
@@ -13,13 +23,7 @@ import urllib.request
 from pathlib import Path
 
 
-def load_webapp_url(cli_url: str | None) -> str:
-    if cli_url:
-        return cli_url.strip()
-    env_url = os.environ.get("GTASKS_WEBAPP_URL", "").strip()
-    if env_url:
-        return env_url
-
+def load_config() -> dict:
     candidates = [
         Path.cwd() / "config.local.json",
         Path(__file__).resolve().parent.parent / "config.local.json",
@@ -28,30 +32,53 @@ def load_webapp_url(cli_url: str | None) -> str:
     for path in candidates:
         if path.is_file():
             try:
-                data = json.loads(path.read_text(encoding="utf-8"))
-                url = str(data.get("gtasks_webapp_url", "")).strip()
-                if url:
-                    return url
+                return json.loads(path.read_text(encoding="utf-8"))
             except Exception:
                 pass
+    return {}
+
+
+def resolve_webapp_url(cli_url: str | None, student_key: str | None) -> str:
+    if cli_url:
+        return cli_url.strip()
+
+    cfg = load_config()
+
+    if student_key:
+        key_lower = student_key.strip().lower()
+        students = cfg.get("students") or {}
+        for k, v in students.items():
+            if k.lower() == key_lower or str(v.get("name", "")).lower().startswith(key_lower) or str(v.get("class", "")).lower() == key_lower:
+                url = str(v.get("webapp_url") or v.get("gtasks_webapp_url") or "").strip()
+                if url:
+                    return url
+
+    env_url = os.environ.get("GTASKS_WEBAPP_URL", "").strip()
+    if env_url:
+        return env_url
+
+    url = str(cfg.get("gtasks_webapp_url") or cfg.get("webapp_url") or "").strip()
+    if url:
+        return url
 
     raise SystemExit(
         "Error: Missing Google Apps Script Web App URL.\n"
-        "Set GTASKS_WEBAPP_URL environment variable, pass --url, or save "
-        '{"gtasks_webapp_url": "https://script.google.com/macros/s/.../exec"} '
-        "in config.local.json or ~/.gemini/config/edupage-tasks.json."
+        "Pass --url, --student <name>, set GTASKS_WEBAPP_URL, or configure config.local.json."
     )
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Push EduPage homework tasks to Google Tasks via Apps Script Web App.")
+    parser = argparse.ArgumentParser(
+        description="Push EduPage homework (tasks) and tests/exams (events) to Google Apps Script Web App."
+    )
     parser.add_argument("--url", help="Google Apps Script Web App URL (/exec)")
-    parser.add_argument("--json", help="Inline JSON payload: '{\"tasks\": [...]}' or '[...]'")
-    parser.add_argument("--file", help="Path to JSON file containing tasks payload (use '-' for stdin)")
+    parser.add_argument("--student", help="Student key/name from config.local.json (e.g. 'jakub' or 'marek')")
+    parser.add_argument("--json", help='Inline JSON payload: \'{"tasks": [...], "events": [...]}\'')
+    parser.add_argument("--file", help="Path to UTF-8 JSON file containing payload (use '-' for stdin)")
     parser.add_argument("--list", action="store_true", help="List current tasks from Google Tasks (GET)")
     args = parser.parse_args()
 
-    url = load_webapp_url(args.url)
+    url = resolve_webapp_url(args.url, args.student)
 
     if args.list:
         with urllib.request.urlopen(url, timeout=30) as resp:
@@ -70,11 +97,14 @@ def main() -> int:
 
     parsed = json.loads(raw)
     if isinstance(parsed, list):
-        payload = {"tasks": parsed}
-    elif isinstance(parsed, dict) and "tasks" in parsed:
-        payload = parsed
+        payload = {"tasks": parsed, "events": []}
+    elif isinstance(parsed, dict) and ("tasks" in parsed or "events" in parsed):
+        payload = {
+            "tasks": parsed.get("tasks", []),
+            "events": parsed.get("events", []),
+        }
     else:
-        payload = {"tasks": [parsed]}
+        payload = {"tasks": [parsed], "events": []}
 
     req = urllib.request.Request(
         url,
