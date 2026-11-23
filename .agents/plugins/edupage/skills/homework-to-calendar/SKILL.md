@@ -62,11 +62,11 @@ For every homework assignment:
    <Attachments if any>
    ```
 6. **Push to Google Tasks**:
-   Run `scripts/push_tasks.py` (located in the workspace root or `~/.gemini/config/plugins/edupage/scripts/push_tasks.py`) passing the JSON array of homework tasks:
+   Write the JSON payload (`{"tasks": [...]}`) in UTF-8 to a temporary JSON file (e.g., `tasks_payload.json` in scratch or workspace) and run `push_tasks.py` via `uv run python` (which works identically on Windows PowerShell and Linux without shell-escaping or UTF-8 issues):
    ```bash
-   python3 "<path_to_push_tasks.py>" --json '{"tasks": [...]}'
+   uv run python "<path_to_push_tasks.py>" --file "<path_to_tasks_payload.json>"
    ```
-   *(On Windows, `uv run python "<path_to_push_tasks.py>" --json ...` or `python "<path_to_push_tasks.py>"` works identically. The Apps Script endpoint automatically deduplicates by `[EduPage#<id>]` and skips already-existing or completed tasks!)*
+   *(Locate `push_tasks.py` at `scripts/push_tasks.py` in the workspace root, or at `~/.gemini/config/plugins/edupage/scripts/push_tasks.py` / `%USERPROFILE%\.gemini\config\plugins\edupage\scripts\push_tasks.py` on Windows. The Apps Script endpoint automatically deduplicates by `[EduPage#<id>]` and skips already-existing or completed tasks!)*
 
 #### B) Announced Tests / Exams ➡️ **Google Calendar Event**
 If an assignment or message announces a test/exam (`test`, `písemka`, `čtvrtletní práce`, `zkoušení`) for a specific date:
