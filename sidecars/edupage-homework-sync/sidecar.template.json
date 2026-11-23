@@ -1,0 +1,23 @@
+{
+  "builtin": "schedule",
+  "args": [
+    "CRON_TZ=Europe/Prague 0 15,18 * * 1-5",
+    "agentapi",
+    "new-conversation",
+    "--",
+    "Použij skill homework-to-calendar: zkontroluj v EduPage nadcházející domácí úkoly a ohlášené testy podle rozvrhu, nové domácí úkoly odešli přes push_tasks.py do Google Tasks (s due na dnešek a deadlinem den před odevzdáním v titulku) a případné testy zapiš přes gcalendar na přesnou vyučovací hodinu."
+  ],
+  "restart_policy": "always",
+  "display_name": "EduPage Homework & Tests Sync",
+  "description": "Každý všední den v 15:00 a 18:00 (Europe/Prague) zkontroluje nové domácí úkoly a testy v EduPage a zapíše je do Google Tasks / Google Kalendáře.",
+  "agent_permissions": {
+    "access_grants": [
+      "mcp(edupage_edupage/get_subdomains)",
+      "mcp(edupage_edupage/get_timeline)",
+      "mcp(edupage_edupage/get_homework_material)",
+      "mcp(edupage_edupage/get_my_timetable)",
+      "mcp(edupage_edupage/get_student_timetable)",
+      "mcp(edupage_edupage/get_day_summary)"
+    ]
+  }
+}

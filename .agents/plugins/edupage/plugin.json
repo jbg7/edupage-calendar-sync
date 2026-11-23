@@ -1,0 +1,5 @@
+{
+  "name": "edupage",
+  "description": "EduPage MCP server and school-day-summary skill for this workspace.",
+  "repository": "https://github.com/oliverhruby/edupage-mcp"
+}

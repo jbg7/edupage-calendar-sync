@@ -1,0 +1,10 @@
+# Local secrets and user-specific MCP config (contains EduPage credentials)
+.agents/plugins/edupage/mcp_config.json
+config.local.json
+.env
+
+# OS / Editor files
+.DS_Store
+Thumbs.db
+__pycache__/
+*.pyc

@@ -1,0 +1,18 @@
+{
+  "mcpServers": {
+    "edupage": {
+      "command": "uvx",
+      "args": [
+        "--from",
+        "edupage-mcp-full",
+        "python",
+        "-c",
+        "import edupage_mcp; [edupage_mcp.server.remove_tool(t) for t in ('choose_meal', 'sign_off_meal', 'rate_meal', 'send_message', 'custom_request')]; edupage_mcp.main()"
+      ],
+      "env": {
+        "EDUPAGE_USERNAME": "YOUR_EDUPAGE_USERNAME",
+        "EDUPAGE_PASSWORD": "YOUR_EDUPAGE_PASSWORD"
+      }
+    }
+  }
+}
